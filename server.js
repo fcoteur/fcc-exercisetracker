@@ -1,23 +1,44 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
-
 const cors = require('cors')
+require('dotenv').config()
+var shortid = require('shortid');
 
+// connect to db and setup
 const mongoose = require('mongoose')
 mongoose.connect(process.env.MLAB_URI || 'mongodb://localhost/exercise-track' )
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+  console.log('Connected to the database!');
+});
+const trackerSchema = new mongoose.Schema({
+  shortId: {type: String, unique: true, default: shortid.generate},
+  username: String,
+  exercises: [{description: String, duration: Number, date: Date}]
+});
+const User = mongoose.model('User', trackerSchema);
 
 app.use(cors())
 
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
-
 app.use(express.static('public'))
+
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
 
+app.post('/api/exercise/new-user', (req, res, next) => {  
+  let user = new User();
+  user.username = req.body.username;
+  user.save(function (err, user) {
+    if (err) return console.error(err);
+    res.json(user);
+  });
+});
 
 // Not found middleware
 app.use((req, res, next) => {

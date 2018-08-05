@@ -31,12 +31,32 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
 
-app.post('/api/exercise/new-user', (req, res, next) => {  
-  let user = new User();
-  user.username = req.body.username;
-  user.save(function (err, user) {
-    if (err) return console.error(err);
-    res.json(user);
+app.post('/api/exercise/new-user', (req, res) => {  
+  // check if username exists and dave it
+  let query = {};
+  query.username = req.body.username;
+  User.find(query, (err,docs) => {
+    if (docs.length) {
+      res.json('user already taken');
+    } else {
+      let user = new User();
+      user.username = req.body.username;
+      user.save(function (err, user) {
+        if (err) return console.error(err);
+        res.json(user);
+      });
+    } 
+  });
+});
+
+app.post('/api/exercise/add', (req, res) => {  
+  let query = {};
+  query.shortId = req.body.userId;
+  User.findOne(query, (err,doc) => {
+    doc.exercises.push('test');
+    doc.save();
+    res.json(doc);
+
   });
 });
 

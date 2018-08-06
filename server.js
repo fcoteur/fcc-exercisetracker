@@ -53,7 +53,12 @@ app.post('/api/exercise/add', (req, res) => {
   let query = {};
   query.shortId = req.body.userId;
   User.findOne(query, (err,doc) => {
-    doc.exercises.push('test');
+    if (err) return console.error(err);
+    let exercise ={};
+    exercise.description = req.body.description;
+    exercise.duration = req.body.duration;
+    exercise.date = req.body.date;
+    doc.exercises.push(exercise);
     doc.save();
     res.json(doc);
 

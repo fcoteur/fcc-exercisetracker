@@ -13,10 +13,11 @@ db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
   console.log('Connected to the database!');
 });
+const exerciseSchema = new mongoose.Schema({description: String, duration: Number, date: Date});
 const trackerSchema = new mongoose.Schema({
   shortId: {type: String, unique: true, default: shortid.generate},
   username: String,
-  exercises: [{description: String, duration: Number, date: Date}]
+  exercises: [exerciseSchema]
 });
 const User = mongoose.model('User', trackerSchema);
 
@@ -52,16 +53,24 @@ app.post('/api/exercise/new-user', (req, res) => {
 app.post('/api/exercise/add', (req, res) => {  
   let query = {};
   query.shortId = req.body.userId;
+ 
   User.findOne(query, (err,doc) => {
     if (err) return console.error(err);
+    if (doc) { 
     let exercise ={};
     exercise.description = req.body.description;
     exercise.duration = req.body.duration;
     exercise.date = req.body.date;
-    doc.exercises.push(exercise);
-    doc.save();
-    res.json(doc);
-
+    let nextIndex = doc.exercises.length
+    doc.exercises[nextIndex]= exercise;
+    doc.save((err,doc) => {
+      if (err) return console.error(err);
+      res.json(doc);
+    });
+    } else {
+      res.json('userid not found!');
+    }
+  
   });
 });
 

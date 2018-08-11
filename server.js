@@ -38,7 +38,7 @@ app.post('/api/exercise/new-user', (req, res) => {
   query.username = req.body.username;
   User.find(query, (err,docs) => {
     if (docs.length) {
-      res.json('user already taken');
+      res.json('username already taken');
     } else {
       let user = new User();
       user.username = req.body.username;
@@ -72,6 +72,24 @@ app.post('/api/exercise/add', (req, res) => {
     }
   
   });
+});
+
+app.get('/api/exercise/log', (req, res) => { 
+
+  let query ={};
+  if (req.query.userId) {query.shortId = req.query.userId};
+  console.log(query);
+
+
+  User.find(query, (err,doc) =>{
+    console.log(doc);
+    res.json(doc[0].exercises);
+  });
+
+  
+  
+  // log:userId log?{userId}[&from][&to][&limit]  \&:from\&:to\&:limt  
+
 });
 
 // Not found middleware

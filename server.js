@@ -78,18 +78,40 @@ app.get('/api/exercise/log', (req, res) => {
 
   let query ={};
   if (req.query.userId) {query.shortId = req.query.userId};
-  console.log(query);
 
+  let from = new Date(req.query.from);
+  let to = new Date(req.query.to);
 
   User.find(query, (err,doc) =>{
-    console.log(doc);
-    res.json(doc[0].exercises);
+    let output =[];
+    for (let i =0; i < doc[0].exercises.length; i++) {
+      if ((req.query.from) && (req.query.to)) {
+        if ((doc[0].exercises[i].date >= from) && (doc[0].exercises[i].date <= to)) {
+          output.push(doc[0].exercises[i]);
+        }
+      }
+      if ((req.query.from) && (!req.query.to)) {
+        if (doc[0].exercises[i].date >= from) {
+          output.push(doc[0].exercises[i]);
+        }
+      }
+      if ((!req.query.from) && (req.query.to)) {
+        if (doc[0].exercises[i].date <= to) {
+          output.push(doc[0].exercises[i]);
+        }
+      }
+      if ((!req.query.from) && (!req.query.to)) {
+        output.push(doc[0].exercises[i]);
+      }
+    }
+    if (!req.query.limit) {
+      console.log(req.query.limit);
+      res.json(output); 
+    } else {
+      let outputLimitted = output.slice(0,req.query.limit);
+      res.json(outputLimitted);
+    }    
   });
-
-  
-  
-  // log:userId log?{userId}[&from][&to][&limit]  \&:from\&:to\&:limt  
-
 });
 
 // Not found middleware
